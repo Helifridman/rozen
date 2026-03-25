@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>שמור תמונה לוואטסאפ</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #111;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    min-height: 100vh;
+    font-family: 'Heebo', sans-serif;
+    padding: 20px;
+  }
+  canvas { border-radius: 12px; max-width: 100%; box-shadow: 0 8px 40px rgba(0,0,0,.6); }
+  .btn-dl {
+    margin-top: 20px;
+    background: linear-gradient(135deg, #F0D080, #C9A84C);
+    color: #0D0000;
+    font-family: 'Heebo', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 900;
+    padding: 14px 40px;
+    border: none; border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(201,168,76,.4);
+    transition: transform .2s;
+  }
+  .btn-dl:hover { transform: scale(1.05); }
+  .hint { color: rgba(255,255,255,.4); font-size: .85rem; margin-top: 10px; }
+</style>
+</head>
+<body>
+<canvas id="c" width="1200" height="630"></canvas>
+<button class="btn-dl" onclick="download()">⬇️ הורידו תמונה לוואטסאפ</button>
+<div class="hint">לחצו להורדה → שלחו בוואטסאפ עם הלינק</div>
+
+<script>
+window.onload = function() {
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+  const W = 1200, H = 630;
+
+  // ---- BG ----
+  const bgGrad = ctx.createLinearGradient(0,0,W,H);
+  bgGrad.addColorStop(0,   '#140404');
+  bgGrad.addColorStop(0.5, '#100808');
+  bgGrad.addColorStop(1,   '#0A0A14');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0,0,W,H);
+
+  // Red glow top
+  const redGlow = ctx.createRadialGradient(600,-60,10,600,0,350);
+  redGlow.addColorStop(0, 'rgba(192,32,42,0.22)');
+  redGlow.addColorStop(1, 'rgba(192,32,42,0)');
+  ctx.fillStyle = redGlow;
+  ctx.fillRect(0,0,W,H);
+
+  // Gold glow bottom right
+  const goldGlow = ctx.createRadialGradient(1050,700,10,1050,700,320);
+  goldGlow.addColorStop(0,'rgba(201,168,76,0.12)');
+  goldGlow.addColorStop(1,'rgba(201,168,76,0)');
+  ctx.fillStyle = goldGlow;
+  ctx.fillRect(0,0,W,H);
+
+  // Diagonal lines
+  ctx.save();
+  ctx.strokeStyle = 'rgba(201,168,76,0.05)';
+  ctx.lineWidth = 1;
+  for(let x=-100; x<1400; x+=150){
+    ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x+200,H); ctx.stroke();
+  }
+  ctx.restore();
+
+  // ---- MATZAH RIGHT ----
+  function drawMatzah(x,y,w,h,alpha,rot){
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.translate(x+w/2, y+h/2);
+    ctx.rotate(rot * Math.PI/180);
+    ctx.translate(-w/2, -h/2);
+    roundRect(ctx, 0,0,w,h,20,'#F5E8B0',null,0);
+    // holes
+    ctx.fillStyle='#C8A860';
+    for(let r=0;r<5;r++) for(let c=0;c<7;c++){
+      ctx.beginPath();
+      ctx.arc(25+c*(w-50)/6, 28+r*(h-56)/4, 5, 0, Math.PI*2);
+      ctx.fill();
+    }
+    ctx.strokeStyle='#C8A860'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(15,18); ctx.lineTo(w-15,18); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(15,h-18); ctx.lineTo(w-15,h-18); ctx.stroke();
+    ctx.strokeStyle='rgba(201,168,76,0.5)'; ctx.lineWidth=2;
+    roundRect(ctx,0,0,w,h,20,null,'rgba(201,168,76,0.5)',2);
+    ctx.restore();
+  }
+  drawMatzah(840, 155, 280, 210, 0.9, -15);
+  drawMatzah(875, 380, 240, 168, 0.65,  8);
+
+  // Magnifying glass
+  ctx.save();
+  ctx.globalAlpha=0.85;
+  ctx.strokeStyle='#F0D080'; ctx.lineWidth=10; ctx.lineCap='round';
+  ctx.beginPath(); ctx.arc(890, 115, 42, 0, Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(921,146); ctx.lineTo(958,183); ctx.stroke();
+  ctx.restore();
+
+  // ---- MAIN CARD ----
+  roundRect(ctx,40,40,720,550,28,'#140808','rgba(201,168,76,0.3)',1.5);
+
+  // Red top bar
+  const redBar = ctx.createLinearGradient(40,40,760,40);
+  redBar.addColorStop(0,'#E8353F'); redBar.addColorStop(1,'#8B1018');
+  roundRect(ctx,40,40,720,8,4,redBar,null,0);
+
+  // Gold left bar
+  const goldBar = ctx.createLinearGradient(40,40,40,590);
+  goldBar.addColorStop(0,'#F0D080'); goldBar.addColorStop(1,'#8B6820');
+  ctx.fillStyle=goldBar; ctx.fillRect(40,48,4,536);
+
+  // ---- LOGO ----
+  const shield = ctx.createLinearGradient(80,80,132,132);
+  shield.addColorStop(0,'#E8353F'); shield.addColorStop(1,'#8B1018');
+  roundRect(ctx,80,80,52,52,14,shield,null,0);
+
+  ctx.font = '900 30px Heebo, sans-serif';
+  ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('ר', 106, 107);
+
+  ctx.font = '700 20px Heebo, sans-serif';
+  ctx.fillStyle='#C9A84C'; ctx.textAlign='right'; ctx.textBaseline='top';
+  ctx.fillText('רוזן ענק הביטוח', 740, 84);
+
+  ctx.font = '400 13px Heebo, sans-serif';
+  ctx.fillStyle='rgba(250,246,240,0.45)';
+  ctx.fillText('9825555.co.il  |  054-9825555', 740, 110);
+
+  // Separator
+  ctx.strokeStyle='rgba(201,168,76,0.2)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(80,148); ctx.lineTo(740,148); ctx.stroke();
+
+  // ---- HEADLINE ----
+  const goldText = ctx.createLinearGradient(0,170,0,240);
+  goldText.addColorStop(0,'#F0D080'); goldText.addColorStop(0.5,'#C9A84C'); goldText.addColorStop(1,'#8B6820');
+
+  ctx.font = '900 58px Heebo, sans-serif';
+  ctx.fillStyle = goldText;
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  ctx.fillText('חג פסח שמח! 🫓', 400, 170);
+
+  // Decorative dots
+  [[135,'#C9A84C'],[150,'#C0202A'],[165,'#C9A84C'],
+   [635,'#C9A84C'],[650,'#C0202A'],[665,'#C9A84C']].forEach(([x,c])=>{
+    ctx.beginPath(); ctx.arc(x,220,4,0,Math.PI*2); ctx.fillStyle=c; ctx.fill();
+  });
+
+  // Gold line
+  ctx.strokeStyle='rgba(201,168,76,0.4)'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(80,240); ctx.lineTo(720,240); ctx.stroke();
+
+  // Game title
+  ctx.font='900 40px Heebo, sans-serif';
+  ctx.fillStyle='#FAF6F0'; ctx.textAlign='center'; ctx.textBaseline='top';
+  ctx.fillText('ציד האפיקומן 🔦', 400, 262);
+
+  ctx.font='400 20px Heebo, sans-serif';
+  ctx.fillStyle='rgba(250,246,240,0.65)';
+  ctx.fillText('משחק רמזים לכל המשפחה – מתנה מרוזן ענק הביטוח', 400, 316);
+
+  // ---- FEATURE BOXES ----
+  const feats = [
+    {x:85, label:'לכל הגילאים', sub:'מגיל 3 ועד 120', col:'#C9A84C'},
+    {x:302, label:'5 רמזים מרגשים', sub:'פתרו יחד כל המשפחה', col:'#E8353F'},
+    {x:518, label:'משחק חינמי', sub:'מתנה עם אהבה', col:'#C9A84C'},
+  ];
+  feats.forEach(({x,label,sub,col})=>{
+    roundRect(ctx,x,370,195,76,14,'#1A0808',col,1);
+    ctx.font='700 14px Heebo,sans-serif'; ctx.fillStyle=col;
+    ctx.textAlign='center'; ctx.textBaseline='top';
+    ctx.fillText(label, x+97, 386);
+    ctx.font='400 13px Heebo,sans-serif'; ctx.fillStyle='rgba(250,246,240,0.75)';
+    ctx.fillText(sub, x+97, 412);
+  });
+
+  // ---- CTA BUTTON ----
+  const btnGrad = ctx.createLinearGradient(195,475,605,535);
+  btnGrad.addColorStop(0,'#E8353F'); btnGrad.addColorStop(1,'#8B1018');
+  roundRect(ctx,195,472,410,62,31,btnGrad,'rgba(240,208,128,0.5)',2);
+  ctx.font='900 24px Heebo,sans-serif'; ctx.fillStyle='#fff';
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('← לחצו למשחק', 400, 503);
+
+  // Bottom URL
+  ctx.strokeStyle='rgba(201,168,76,0.15)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(80,553); ctx.lineTo(720,553); ctx.stroke();
+  ctx.font='400 13px Heebo,sans-serif'; ctx.fillStyle='rgba(250,246,240,0.3)';
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  ctx.fillText('helifridman.github.io/rosen-afi', 400, 562);
+
+  // Stars of David decorative
+  function star(x,y,r,alpha){
+    ctx.save(); ctx.globalAlpha=alpha; ctx.fillStyle='#C9A84C';
+    for(let rot=0;rot<2;rot++){
+      ctx.save(); ctx.translate(x,y); ctx.rotate(rot*Math.PI/3);
+      ctx.beginPath(); ctx.moveTo(0,-r); ctx.lineTo(r*.866,r*.5); ctx.lineTo(-r*.866,r*.5); ctx.closePath();
+      ctx.fill(); ctx.restore();
+    }
+    ctx.restore();
+  }
+  [[55,55,14,.12],[130,90,9,.1],[25,120,7,.08],
+   [1130,55,16,.12],[1165,95,9,.1]].forEach(s=>star(...s));
+};
+
+function roundRect(ctx,x,y,w,h,r,fill,stroke,sw){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y);
+  ctx.arcTo(x+w,y,x+w,y+r,r); ctx.lineTo(x+w,y+h-r);
+  ctx.arcTo(x+w,y+h,x+w-r,y+h,r); ctx.lineTo(x+r,y+h);
+  ctx.arcTo(x,y+h,x,y+h-r,r); ctx.lineTo(x,y+r);
+  ctx.arcTo(x,y,x+r,y,r); ctx.closePath();
+  if(fill){ctx.fillStyle=fill; ctx.fill();}
+  if(stroke){ctx.strokeStyle=stroke; ctx.lineWidth=sw; ctx.stroke();}
+}
+
+function download(){
+  const link = document.createElement('a');
+  link.download = 'rosen-pesach.png';
+  link.href = document.getElementById('c').toDataURL('image/png');
+  link.click();
+}
+</script>
+</body>
+</html>
